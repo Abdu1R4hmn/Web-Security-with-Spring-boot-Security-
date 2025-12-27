@@ -2,7 +2,7 @@ package com.example.demo.exceptions;
 
 import com.example.demo.exceptions.customHandlers.EmailAlreadyExists;
 import com.example.demo.exceptions.customHandlers.RefreshTokenExpired;
-import com.example.demo.exceptions.customHandlers.RefreshTokenRevoked;
+import com.example.demo.exceptions.customHandlers.RefreshTokenReuseDetected;
 import com.example.demo.exceptions.customHandlers.ResourseNotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,18 +36,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RefreshTokenExpired.class)
     public ResponseEntity<ApiErrorResponse> handleRefreshTokenExpired(BussinessException ex){
-        return ResponseEntity.status(HttpStatus.CONFLICT)
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ApiErrorResponse(
-                        HttpStatus.CONFLICT.value(),
+                        HttpStatus.UNAUTHORIZED.value(),
                         ex.getMessage()
                 ));
     }
 
-    @ExceptionHandler(RefreshTokenRevoked.class)
+    @ExceptionHandler(RefreshTokenReuseDetected.class)
     public ResponseEntity<ApiErrorResponse> handleRefreshTokenRevoked(BussinessException ex){
-        return ResponseEntity.status(HttpStatus.CONFLICT)
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ApiErrorResponse(
-                        HttpStatus.CONFLICT.value(),
+                        HttpStatus.UNAUTHORIZED.value(),
                         ex.getMessage()
                 ));
     }

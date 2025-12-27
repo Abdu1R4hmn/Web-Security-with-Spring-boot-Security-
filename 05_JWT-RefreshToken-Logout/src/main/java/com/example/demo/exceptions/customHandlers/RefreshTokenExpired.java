@@ -4,6 +4,6 @@ import com.example.demo.exceptions.BussinessException;
 
 public class RefreshTokenExpired extends BussinessException {
     public RefreshTokenExpired() {
-        super("Refresh Token is Expired!");
+        super("Invalid Refresh Token!");
     }
 }

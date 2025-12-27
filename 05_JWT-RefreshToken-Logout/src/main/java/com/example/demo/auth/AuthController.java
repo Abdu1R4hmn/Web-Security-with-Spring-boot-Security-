@@ -108,4 +108,17 @@ public class AuthController{
 
         return new LoginResponseDto(newAccessToken,newRefreshToken);
     }
+
+    @PostMapping("/logout")
+    public void logout() throws ResourseNotFound{
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResourseNotFound(email));
+
+        refreshTokenService.revokeAllUserTokens(user.getId());
+    }
 }

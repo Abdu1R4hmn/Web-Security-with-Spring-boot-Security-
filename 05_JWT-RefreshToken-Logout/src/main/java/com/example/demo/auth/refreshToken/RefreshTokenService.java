@@ -1,12 +1,11 @@
 package com.example.demo.auth.refreshToken;
 
 import com.example.demo.exceptions.customHandlers.RefreshTokenExpired;
-import com.example.demo.exceptions.customHandlers.RefreshTokenRevoked;
+import com.example.demo.exceptions.customHandlers.RefreshTokenReuseDetected;
 import com.example.demo.exceptions.customHandlers.ResourseNotFound;
 import com.example.demo.user.User;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -17,6 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
@@ -40,20 +40,22 @@ public class RefreshTokenService {
         return rawToken;
     }
 
-    public RefreshToken validateRefreshToken(String rawToken) throws ResourseNotFound, RefreshTokenExpired, RefreshTokenRevoked{
+    public RefreshToken validateRefreshToken(String rawToken) throws ResourseNotFound, RefreshTokenExpired, RefreshTokenReuseDetected {
 
         String hashedToken = hashToken(rawToken);
 
         RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(hashedToken)
                 .orElseThrow(() -> new ResourseNotFound("Refresh Token "));
 
-        if (refreshToken.isRevoked()){
-            throw new RefreshTokenRevoked();
+        if (refreshToken.isRevoked() || refreshToken.getLastUsedAt() != null){
+            revokeAllUserTokens(refreshToken.getUser().getId());
+            throw new RefreshTokenReuseDetected();
         }
 
         if(refreshToken.getExpiresAt().isBefore(Instant.now())){
             throw new RefreshTokenExpired();
         }
+
         refreshToken.setLastUsedAt(Instant.now());
         refreshTokenRepository.save(refreshToken);
 
